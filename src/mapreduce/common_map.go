@@ -2,7 +2,6 @@ package mapreduce
 
 import (
 	"hash/fnv"
-	"fmt"
   "io/ioutil"
 	"os"
 	"encoding/json"
@@ -53,8 +52,8 @@ func doMap(
 	fileMap := make(map[string]*json.Encoder)
 
 	for _, kv := range mappedValues {
-		outFile := ihash(kv.Key) % uint32(nReduce)
-		path := fmt.Sprintf("tmp/%s-%v-%v.txt", jobName, mapTaskNumber, outFile)
+		reduceTaskNumber := ihash(kv.Key) % uint32(nReduce)
+		path := reduceName(jobName, mapTaskNumber, int(reduceTaskNumber))
 
 		if _, ok := fileMap[path]; !ok {
 			file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
@@ -67,12 +66,6 @@ func doMap(
 		enc := fileMap[path]
 		encErr := enc.Encode(kv)
 		checkErr(encErr)
-	}
-}
-
-func checkErr(e error) {
-	if e != nil {
-		panic(e)
 	}
 }
 
